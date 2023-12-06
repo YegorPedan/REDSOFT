@@ -1,25 +1,19 @@
 import asyncio
-import sqlite3
+import aiosqlite
 
 
-conn = sqlite3.connect('database.db')
-cursor = conn.cursor()
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS clients (
-        id INTEGER PRIMARY KEY,
-        name TEXT NOT NULL,
-        ram INTEGER NOT NULL,
-        cpu INTEGER NOT NULL,
-        disk_capacity INTEGER NOT NULL
-    )
-''')
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS disks (
-        id INTEGER PRIMARY KEY,
-        client_id INTEGER,
-        disk_id TEXT NOT NULL,
-        FOREIGN KEY (client_id) REFERENCES clients (id)
-    )
-''')
-conn.commit()
-conn.close()
+class Server:
+    def __init__(self, host: str, port: int) -> None:
+        self._host = host
+        self._port = port
+        self.clients = {}
+
+    async def start_server(self):
+        server = await asyncio.start_server(None, self._host, self._port)
+        async with server:
+            await server.serve_forever()
+
+
+if __name__ == '__main__':
+    server = Server('127.0.0.1', 8888)
+    asyncio.run(server.start_server())
