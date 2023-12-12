@@ -1,18 +1,44 @@
 import asyncio
 
+from database import ServerDatabase
 
-async def handle_client(reader: str, writer: str) -> None:
-    data = await reader.read(100)
-    message = data.decode()
-    addr = writer.get_extra_info('peername')
-    print(f"Received {message!r} from {addr!r}")
+db = ServerDatabase(db_path='database.db')
 
-    response = "Hello, this is an asynchronous response!\n"
-    writer.write(response.encode())
-    await writer.drain()
 
-    print("Closing the connection")
-    writer.close()
+async def handle_post_command(params: list):
+    try:
+        allocated_ram, allocated_cpus, disk_memory_size, disk_id = map(int, params)
+        success = db.add_client(allocated_ram, allocated_cpus, disk_memory_size, disk_id)
+    except (ValueError, IndexError):
+        return 'Invalid params for POST command'
+
+
+async def process_command(command: str, params: list):
+    if command == 'POST':
+        return await handle_post_command(params)
+
+
+async def handle_client(reader, writer):
+    try:
+        while True:
+            data_str = ""
+            while True:
+                chunk = await reader.read(100)
+                if not chunk:
+                    break
+                data_str += chunk.decode()
+                if '\n' in data_str:
+                    break
+
+            command, *params = data_str.strip().split(" ")
+            response = await process_command(command, params)
+
+            writer.write(response.encode())
+            await writer.drain()
+
+    finally:
+        print("Closing the connection")
+        writer.close()
 
 
 async def main():
