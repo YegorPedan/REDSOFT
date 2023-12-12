@@ -33,7 +33,11 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
             writer.write(data)
             await writer.drain()
         else:
-            pass
+            print('1')
+            await asyncio.sleep(1)
+            writer.write(b'Enter username: ')
+            username = await reader.read(256)
+            print(username)
 
     writer.close()
     await writer.wait_closed()
