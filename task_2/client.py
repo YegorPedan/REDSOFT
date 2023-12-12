@@ -1,35 +1,18 @@
 import asyncio
-import time
+import uuid
 
 HOST = '127.0.0.1'
 PORT = 8888
 
 
 async def run_client() -> None:
+    unique_id = uuid.uuid4()
     reader, writer = await asyncio.open_connection(HOST, PORT)
-
-    writer.write(b'Hello, world!')
+    message = await reader.read(256)
+    print(message)
+    data = f'add_client 19 12 15 {unique_id}'
+    writer.write(data.encode())
     await writer.drain()
-
-    messages = 10
-
-    while True:
-        data = await reader.read(1024)
-
-        if not data:
-            raise Exception('socket closed')
-
-        print(f'Received: {data.decode()!r}')
-
-        if messages > 0:
-            await asyncio.sleep(1)
-            writer.write(f'{time.time()}'.encode())
-            await writer.drain()
-            messages -= 1
-        else:
-            writer.write(b'quit')
-            await writer.drain()
-            break
 
 
 if __name__ == '__main__':
