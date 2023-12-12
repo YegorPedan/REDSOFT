@@ -2,7 +2,7 @@ import asyncio
 
 from database import ServerDatabase
 
-HOST = '127.0.0.1'
+HOST = '0.0.0.0'
 PORT = 8888
 
 db = ServerDatabase(db_path='database.db')
@@ -14,21 +14,26 @@ async def add_client_to_database(allocated_ram: str, allocated_cpus: str, disk_m
 
 
 async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
+    is_authenticated = False
     data = None
 
+    writer.write(b'Login or registrate before using command!')
     while data != b'quit':
         data = await reader.read(256)
         msg = data.decode()
 
         msg_data = msg.split()
-        if msg_data[0] == 'add_client':
-            await add_client_to_database(msg_data[1], msg_data[2], msg_data[3], msg_data[4])
+        if is_authenticated:
+            if msg_data[0] == 'add_client':
+                await add_client_to_database(msg_data[1], msg_data[2], msg_data[3], msg_data[4])
 
-        addr, port = writer.get_extra_info('peername')
-        print(f'Message from {addr}:{port}: {msg!r}')
+            addr, port = writer.get_extra_info('peername')
+            print(f'Message from {addr}:{port}: {msg!r}')
 
-        writer.write(data)
-        await writer.drain()
+            writer.write(data)
+            await writer.drain()
+        else:
+            pass
 
     writer.close()
     await writer.wait_closed()
