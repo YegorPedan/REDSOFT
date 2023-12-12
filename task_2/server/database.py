@@ -28,6 +28,13 @@ class ServerDatabase:
                 disk_id INTEGER UNIQUE
             );
         """)
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users(
+        id INTEGER PRIMARY KEY,
+        username VARCHAR(256),
+        password VARCHAR(256)
+        );
+        """)
         self.connection.commit()
 
     def add_client(self, allocated_ram: str, allocated_cpus: str, disk_memory_size: str, disk_id: int) -> bool:

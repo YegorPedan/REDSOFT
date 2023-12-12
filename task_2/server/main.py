@@ -8,46 +8,10 @@ PORT = 8888
 db = ServerDatabase(db_path='database.db')
 
 
-async def handle_post_command(params: list):
-    try:
-        allocated_ram, allocated_cpus, disk_memory_size, disk_id = map(int, params)
-        success = db.add_client(allocated_ram, allocated_cpus, disk_memory_size, disk_id)
-        if success:
-            return f"Client added successfully! Disk ID: {disk_id}"
-        else:
-            return f"Client with the same Disk ID {disk_id} already exists."
-    except (ValueError, IndexError):
-        return 'Invalid params for POST command'
+async def add_client_to_database(allocated_ram: str, allocated_cpus: str, disk_memory: str, disk_id: int):
+    status = await db.add_client(allocated_ram, allocated_cpus, disk_memory, disk_id)
+    print(status)
 
-
-async def process_command(command: str, params: list):
-    if command == 'POST':
-        return await handle_post_command(params)
-
-
-# async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
-#     try:
-#         while True:
-#             data_str = ""
-#             while True:
-#                 chunk = await reader.read(100)
-#                 if not chunk:
-#                     break
-#                 data_str += chunk.decode()
-#                 if '\n' in data_str:
-#                     break
-#
-#             command, *params = data_str.strip().split(" ")
-#             response = await process_command(command, params)
-#
-#             if response:
-#                 writer.write(response.encode())
-#                 await writer.drain()
-#
-#     finally:
-#         print("Closing the connection")
-#         writer.close()
-#         await writer.wait_closed()
 
 async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
     data = None
@@ -55,6 +19,11 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
     while data != b'quit':
         data = await reader.read(256)
         msg = data.decode()
+
+        msg_data = msg.split()
+        if msg_data[0] == 'add_client':
+            await add_client_to_database(msg_data[1], msg_data[2], msg_data[3], msg_data[4])
+
         addr, port = writer.get_extra_info('peername')
         print(f'Message from {addr}:{port}: {msg!r}')
 
