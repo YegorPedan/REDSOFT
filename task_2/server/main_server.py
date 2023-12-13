@@ -12,6 +12,7 @@ class ChatServer:
     def __init__(self, async_loop: AbstractEventLoop, host: str, port: int):
         self.loop = async_loop
         self.db = ServerDatabase(db_path='database.db')
+        self.active_clients = []
         self.server = self.loop.run_until_complete(
             asyncio.start_server(
                 self.handle_client, host, port
@@ -27,8 +28,10 @@ class ChatServer:
 
         while not is_authenticated:
             writer.write(b'Enter username: ')
+            await writer.drain()
             username = (await reader.read(256)).decode()
             writer.write(b'Enter password: ')
+            await writer.drain()
             password = (await reader.read(256)).decode()
             print(f'Username: {username}, Password: {password}')
 

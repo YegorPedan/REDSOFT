@@ -54,8 +54,5 @@ class ServerDatabase:
         return self.cursor.fetchall()
 
     def is_client_exists(self, username: str, password: str):
-       self.cursor.execute('SELECT * FROM users WHERE username=? and password=?', (username, password))
-       return self.cursor.fetchone()
-
-
-
+        self.cursor.execute('SELECT * FROM users WHERE username=? and password=?', (username, password))
+        return self.cursor.fetchone()
