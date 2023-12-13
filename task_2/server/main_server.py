@@ -24,11 +24,22 @@ class ChatServer:
 
     async def handle_client(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
         is_authenticated = False
-        data = None
 
-        writer.write(b'Login or register before using commands!')
-        while data != b'quit':
-            data = await reader.read(256)
+        while not is_authenticated:
+            writer.write(b'Enter username: ')
+            username = (await reader.read(256)).decode()
+            writer.write(b'Enter password: ')
+            password = (await reader.read(256)).decode()
+            print(f'Username: {username}, Password: {password}')
+
+            if bool(self.db.is_client_exists(username, password)):
+                is_authenticated = True
+                writer.write(b'Successfully authenticated')
+            else:
+                writer.write(b'Authentication failed. Please try again.')
+
+        data = await reader.read(256)
+        while True:
             msg = data.decode()
 
             msg_data = msg.split()
@@ -46,9 +57,7 @@ class ChatServer:
                 writer.write(b'Enter username: ')
                 username = await reader.read(256)
                 print(username)
-
-        writer.close()
-        await writer.wait_closed()
+            data = await reader.read(256)
 
     async def run_server_forever(self):
         async with self.server:
