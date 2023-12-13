@@ -11,7 +11,7 @@ async def run_client() -> None:
 
     message = await reader.read(256)
     print(message.decode())
-    data = f'hallo, world!'
+    data = f'add_client 1 2 3 {str(unique_id)}'
     writer.write(data.encode())
     await writer.drain()
 

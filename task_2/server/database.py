@@ -25,7 +25,7 @@ class ServerDatabase:
                 allocated_ram INTEGER,
                 allocated_cpus INTEGER,
                 disk_memory_size INTEGER,
-                disk_id INTEGER UNIQUE
+                disk_id VARCHAR(256) UNIQUE
             );
         """)
         self.cursor.execute("""
@@ -37,7 +37,7 @@ class ServerDatabase:
         """)
         self.connection.commit()
 
-    def add_client(self, allocated_ram: str, allocated_cpus: str, disk_memory_size: str, disk_id: int) -> bool:
+    def add_client(self, allocated_ram: str, allocated_cpus: str, disk_memory_size: str, disk_id: str) -> bool:
         status = True
         try:
             self.cursor.execute(
