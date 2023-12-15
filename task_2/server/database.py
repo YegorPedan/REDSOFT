@@ -20,22 +20,22 @@ class ServerDatabase:
 
     def create_table_if_not_exists(self):
         self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users(
+        id INTEGER PRIMARY KEY,
+        username VARCHAR(256),
+        password VARCHAR(256)
+        );
+        """)
+        self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS clients(
                 id INTEGER PRIMARY KEY,
                 allocated_ram INTEGER,
                 allocated_cpus INTEGER,
                 disk_memory_size INTEGER,
-                disk_id VARCHAR(256) UNIQUE
+                disk_id VARCHAR(256) UNIQUE,
+                user_id INTEGER,
+                FOREIGN KEY (user_id) REFERENCES users(id)
             );
-        """)
-        self.cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users(
-        id INTEGER PRIMARY KEY,
-        username VARCHAR(256),
-        password VARCHAR(256),
-        client_id INTEGER,
-        FOREIGN KEY (client_id) REFERENCES clients(id)
-        );
         """)
         self.connection.commit()
 

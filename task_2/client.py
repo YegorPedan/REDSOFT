@@ -2,7 +2,6 @@ import asyncio
 from asyncio import StreamReader, StreamWriter
 import uuid
 
-
 HOST = '0.0.0.0'
 PORT = 8888
 
@@ -35,6 +34,11 @@ async def add_user(writer):
     await writer.drain()
 
 
+async def get_all_active_clients(writer: asyncio.StreamWriter, reader: asyncio.StreamReader):
+    writer.write(b'get_all_active_clients')
+    await writer.drain()
+
+
 async def send_and_receive_messages():
     reader, writer = await asyncio.open_connection(HOST, PORT)
     await authenticate(reader, writer)
@@ -43,8 +47,10 @@ async def send_and_receive_messages():
             message = input('Enter a message (or \'quit \' to exit) ')
             if message.lower() == 'quit':
                 break
-            if message.lower() == 'add_user':
+            elif message.lower() == 'add_user':
                 await add_user(writer)
+            elif message.lower() == 'get_all_active_clients':
+                await get_all_active_clients(writer, reader)
 
             print(f'Send: {message!r}')
             writer.write(message.encode())
