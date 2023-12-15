@@ -40,6 +40,7 @@ class ChatServer:
                 writer.write(b'Successfully authenticated')
             else:
                 writer.write(b'Authentication failed. Please try again.')
+            await asyncio.sleep(1)
 
         data = await reader.read(256)
         while True:

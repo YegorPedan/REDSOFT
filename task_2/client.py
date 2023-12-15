@@ -2,6 +2,7 @@ import asyncio
 from asyncio import StreamReader, StreamWriter
 import uuid
 
+
 HOST = '0.0.0.0'
 PORT = 8888
 
@@ -9,12 +10,16 @@ PORT = 8888
 async def authenticate(reader: StreamReader, writer: StreamWriter):
     result = ''
     while result != 'Successfully authenticated':
+        # get the instructions from server
+        data = await reader.read(256)
+        print(data.decode())
+
+        writer.write(input().encode())
+        await writer.drain()
         data = await reader.read(256)
         print(data.decode())
         writer.write(input().encode())
-        data = await reader.read(256)
-        print(data.decode())
-        writer.write(input().encode())
+        await writer.drain()
         result = (await reader.read(256)).decode()
 
         if result == 'Successfully authenticated':
