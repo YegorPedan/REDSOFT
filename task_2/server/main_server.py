@@ -12,7 +12,6 @@ class ChatServer:
     def __init__(self, async_loop: AbstractEventLoop, host: str, port: int):
         self.loop = async_loop
         self.db = ServerDatabase(db_path='database.db')
-        self.active_clients = []
         self.server = self.loop.run_until_complete(
             asyncio.start_server(
                 self.handle_client, host, port
@@ -23,24 +22,29 @@ class ChatServer:
         status = self.db.add_client(allocated_ram, allocated_cpus, disk_memory, disk_id)
         print(status)
 
+    async def authenticate_client(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> bool:
+        is_authenticated = False
+        writer.write(b'Enter username: ')
+        await writer.drain()
+        username = (await reader.read(256)).decode()
+        writer.write(b'Enter password: ')
+        await writer.drain()
+        password = (await reader.read(256)).decode()
+        print(f'Username: {username}, Password: {password}')
+
+        if bool(self.db.is_client_exists(username, password)):
+            writer.write(b'Successfully authenticated')
+            is_authenticated = True
+        else:
+            writer.write(b'Authentication failed. Please try again.')
+        await asyncio.sleep(1)
+        return is_authenticated
+
     async def handle_client(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
         is_authenticated = False
 
         while not is_authenticated:
-            writer.write(b'Enter username: ')
-            await writer.drain()
-            username = (await reader.read(256)).decode()
-            writer.write(b'Enter password: ')
-            await writer.drain()
-            password = (await reader.read(256)).decode()
-            print(f'Username: {username}, Password: {password}')
-
-            if bool(self.db.is_client_exists(username, password)):
-                is_authenticated = True
-                writer.write(b'Successfully authenticated')
-            else:
-                writer.write(b'Authentication failed. Please try again.')
-            await asyncio.sleep(1)
+            is_authenticated = await self.authenticate_client(reader, writer)
 
         data = await reader.read(256)
         while True:

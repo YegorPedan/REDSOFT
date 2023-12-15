@@ -32,7 +32,9 @@ class ServerDatabase:
         CREATE TABLE IF NOT EXISTS users(
         id INTEGER PRIMARY KEY,
         username VARCHAR(256),
-        password VARCHAR(256)
+        password VARCHAR(256),
+        client_id INTEGER,
+        FOREIGN KEY (client_id) REFERENCES clients(id)
         );
         """)
         self.connection.commit()
