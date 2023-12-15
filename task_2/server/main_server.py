@@ -12,7 +12,7 @@ class ChatServer:
     def __init__(self, async_loop: AbstractEventLoop, host: str, port: int):
         self.loop = async_loop
         self.db = ServerDatabase(db_path='database.db')
-        self.active_clients = []
+        self.active_clients = set()
         self.server = self.loop.run_until_complete(
             asyncio.start_server(
                 self.handle_client, host, port
@@ -32,12 +32,12 @@ class ChatServer:
         password = (await reader.read(256)).decode()
         print(f'Username: {username}, Password: {password}')
 
-        if bool(user_id := self.db.is_client_exists(username, password)):
+        if bool(user := self.db.is_client_exists(username, password)):
             writer.write(b'Successfully authenticated')
         else:
             writer.write(b'Authentication failed. Please try again.')
         await asyncio.sleep(1)
-        return user_id
+        return user
 
     async def add_client_to_database(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         data = await reader.read(256)
@@ -53,21 +53,25 @@ class ChatServer:
         writer.write(data)
         await writer.drain()
 
-    async def get_all_active_clients(self, writer: asyncio.StreamWriter):
-        pass
+    async def get_all_active_clients(self):
+        result = self.db.get_machines_for_users(self.active_clients)
+        print(result)
 
     async def handle_client(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
-        is_authenticated = False
+        user = False
 
-        while not is_authenticated:
-            is_authenticated = await self.authenticate_client(reader, writer)
+        while not user:
+            user = await self.authenticate_client(reader, writer)
+        else:
+            self.active_clients.add(user[0])
         await self.add_client_to_database(reader, writer)
 
         while True:
             query = (await reader.read(256)).decode()
 
             if query == 'get_all_active_clients':
-                await self.get_all_active_clients(writer)
+                result = await self.get_all_active_clients()
+                print(result)
 
     async def run_server_forever(self):
         async with self.server:

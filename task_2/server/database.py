@@ -56,8 +56,17 @@ class ServerDatabase:
         return self.cursor.fetchall()
 
     def is_client_exists(self, username: str, password: str):
-       self.cursor.execute('SELECT * FROM users WHERE username=? and password=?', (username, password))
-       return self.cursor.fetchone()
+        self.cursor.execute('SELECT * FROM users WHERE username=? and password=?', (username, password))
+        return self.cursor.fetchone()
 
+    def get_machines_for_users(self, user_ids: set):
+        placeholders = ', '.join([str(user_id) for user_id in user_ids])
 
+        # Use parameterized query to avoid SQL injection
+        query = f"""SELECT clients.id, allocated_ram, allocated_cpus, disk_memory_size, disk_id FROM clients
+        inner join users ON users.id == clients.user_id AND users.id in ({placeholders})"""
 
+        self.cursor.execute(query)
+        result = self.cursor.fetchall()
+
+        return result

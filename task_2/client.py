@@ -34,11 +34,6 @@ async def add_user(writer):
     await writer.drain()
 
 
-async def get_all_active_clients(writer: asyncio.StreamWriter, reader: asyncio.StreamReader):
-    writer.write(b'get_all_active_clients')
-    await writer.drain()
-
-
 async def send_and_receive_messages():
     reader, writer = await asyncio.open_connection(HOST, PORT)
     await authenticate(reader, writer)
@@ -49,8 +44,6 @@ async def send_and_receive_messages():
                 break
             elif message.lower() == 'add_user':
                 await add_user(writer)
-            elif message.lower() == 'get_all_active_clients':
-                await get_all_active_clients(writer, reader)
 
             print(f'Send: {message!r}')
             writer.write(message.encode())
