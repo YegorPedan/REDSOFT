@@ -55,7 +55,7 @@ class ChatServer:
 
     async def get_all_active_clients(self):
         result = self.db.get_machines_for_users(self.active_clients)
-        print(result)
+        return result
 
     async def handle_client(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
         user = False
