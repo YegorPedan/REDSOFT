@@ -27,9 +27,9 @@ async def authenticate(reader: StreamReader, writer: StreamWriter):
             print('Username or password incorrect. Please try again.')
 
 
-async def add_user(writer):
+async def add_user(writer, allocated_ram, allocated_cpus, disk_memory_size):
     unique_id = uuid.uuid4()
-    data = f'add_client 1 2 3 {unique_id}'
+    data = f'add_client {allocated_ram} {allocated_cpus} {disk_memory_size} {unique_id}'
     writer.write(data.encode())
     await writer.drain()
 
@@ -43,7 +43,10 @@ async def send_and_receive_messages():
             if message.lower() == 'quit':
                 break
             elif message.lower() == 'add_user':
-                await add_user(writer)
+                allocated_ram = input('Enter allocated ram ')
+                allocated_cpus = input('Enter allocated cpus ')
+                disk_memory_size = input('Enter disk memory size ')
+                await add_user(writer, allocated_ram, allocated_cpus, disk_memory_size)
 
             print(f'Send: {message!r}')
             writer.write(message.encode())

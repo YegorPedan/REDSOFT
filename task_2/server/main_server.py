@@ -1,13 +1,22 @@
 import asyncio
 from asyncio import AbstractEventLoop
+from hashlib import sha256
 
 from database import ServerDatabase
 
+SALT = 'SOFT'
 HOST = '0.0.0.0'
 PORT = 8888
 
 
 class ChatServer:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(ChatServer, cls).__new__(cls)
+
+        return cls._instance
 
     def __init__(self, async_loop: AbstractEventLoop, host: str, port: int):
         self.loop = async_loop
@@ -30,9 +39,10 @@ class ChatServer:
         writer.write(b'Enter password: ')
         await writer.drain()
         password = (await reader.read(256)).decode()
-        print(f'Username: {username}, Password: {password}')
+        password_hash = sha256((password + SALT).encode()).hexdigest()
+        print(f'Username: {username}, Password: {password_hash}')
 
-        if bool(user := self.db.is_client_exists(username, password)):
+        if bool(user := self.db.is_client_exists(username, password_hash)):
             writer.write(b'Successfully authenticated')
         else:
             writer.write(b'Authentication failed. Please try again.')
