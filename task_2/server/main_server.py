@@ -1,12 +1,11 @@
 import asyncio
 from asyncio import AbstractEventLoop
 from hashlib import sha256
+import configparser
 
 from database import ServerDatabase
 
 SALT = 'SOFT'
-HOST = '0.0.0.0'
-PORT = 8888
 
 
 class ChatServer:
@@ -89,6 +88,10 @@ class ChatServer:
 
 
 if __name__ == '__main__':
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    HOST = config['SERVER']['HOST']
+    PORT = config['SERVER']['PORT']
     loop = asyncio.new_event_loop()
-    server = ChatServer(loop, HOST, PORT)
+    server = ChatServer(loop, HOST, int(PORT))
     loop.run_until_complete(server.run_server_forever())
