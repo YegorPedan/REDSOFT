@@ -14,10 +14,6 @@ class ServerDatabase:
         self.connection = sqlite3.connect(self.db_path)
         self.cursor = self.connection.cursor()
 
-    def disconnect(self):
-        self.cursor.close()
-        self.connection.close()
-
     def create_table_if_not_exists(self):
         self.cursor.execute("""
         CREATE TABLE IF NOT EXISTS users(
